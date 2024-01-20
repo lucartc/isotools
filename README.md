@@ -1,6 +1,18 @@
 # ISO tools
 This lib implements part of `ISO/IEC 14496-12 2015`, which is the specification for ISO Base Media File Format, a media container used my many file formats, including mp4.
 
+## What's missing?
+Boxes related to `AudioSampleEntry` won't be implemented at the moment, since I don't have access to `ISO/IEC
+23003‐4` specification. If you can, please send me the spec at `jlucartc@gmail.com` or send a PR at the github repo(I'll create one soon).
+
+If I eventually decide to implement it without the spec, I'll leave a warning here, because it will cause errors/malfunction if `DRCCoefficientsBasic`, `DRCCoefficientsUniDRC`, `DRCInstructionsBasic`,
+and `DRCInstructionsUniDRC` boxes are not defined.
+
+Sample entries will be implemented soon.
+
+The following boxes still need to be implemented:
+`tims`,`tsro`,`snro`,`fdsa`,`fdpa`,`lct_header_template`,`lct_header_extension`,`rrtp`,`rsrp`,`rssr`,`clap`,`pasp`,`srat`
+
 ## Functionalities
 With this library you can:
 ### Fix your media file:

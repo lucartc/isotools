@@ -1,15 +1,9 @@
-// Shift bits:
-/*
-fs.readFile('/home/luca/Desktop/only-5-min-a-day-to-practice-art-do-this-youtube-art-school-working.mp4')
-.then(data => new DataView(data.buffer)).then(data => console.log(data.getUint32(0)))
-*/
-
 function create_box_tree(file, parent = null) { return get_next_box(file, parent) }
 
 function get_next_box(file, parent, tree = []) {
     let view = new DataView(file.buffer, file.byteOffset)
     let size = view.getUint32(0)
-    let type = file.subarray(4, 8).toString()
+    let type = file.subarray(4, 8).toString().trim()
     let header_size = 8
     let valid_types = new Set(Object.keys(methods))
 
@@ -18,7 +12,7 @@ function get_next_box(file, parent, tree = []) {
             file = file.subarray(1)
             view = new DataView(file.buffer, file.byteOffset)
             size = view.getUint32(0)
-            type = file.subarray(4, 8).toString()
+            type = file.subarray(4, 8).toString().trim()
         }
     } catch (e) {
         if (e instanceof RangeError) {
@@ -30,7 +24,7 @@ function get_next_box(file, parent, tree = []) {
     let largesize = size == 1 ? view.getBigUint64(8) : null
     largesize ? header_size += 8 : null
 
-    let extended_type = type == 'uuid' ? file.subarray(header_size, header_size + 16).toString() : null
+    let extended_type = type == 'uuid' ? file.subarray(header_size, header_size + 16).toString().trim() : null
     extended_type ? header_size += 16 : null
 
     size = largesize ? largesize : size
@@ -53,6 +47,7 @@ function extract_data(type, box, parent) {
     try {
         return methods[type] ? methods[type](box, parent) : null
     } catch (err) {
+        debugger
         throw new Error(`Malformed '${type}' box`, { cause: err })
     }
 }
@@ -61,7 +56,7 @@ let methods = {
     ftyp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -71,27 +66,23 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
-        let major_brand = data.subarray(body_offset, body_offset + 4).toString()
+        let major_brand = data.subarray(body_offset, body_offset + 4).toString().trim()
         let minor_version = view.getUint32(body_offset + 4)
         let compatible_brands = []
 
         body_offset += 8
 
         for (let i = 0; i < view.byteLength - body_offset; i += 4) {
-            compatible_brands.push(data.subarray(body_offset + i, body_offset + i + 4).toString())
+            compatible_brands.push(data.subarray(body_offset + i, body_offset + i + 4).toString().trim())
         }
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
-            extended_type: extended_type,
-            size: size,
-            type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             major_brand: major_brand,
             minor_version: minor_version,
@@ -103,7 +94,7 @@ let methods = {
     pdin: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -116,7 +107,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -124,7 +115,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let pairs = []
@@ -142,7 +133,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -154,7 +145,7 @@ let methods = {
     moov: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -164,7 +155,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -172,7 +163,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
         }
 
@@ -182,7 +173,7 @@ let methods = {
     mvhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -195,14 +186,14 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
         version = view.getUint8(body_offset)
 
         if (!accepted_versions.has(version)) {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let creation_time = null
@@ -244,14 +235,14 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            creation_time: creation_time,
-            modification_time: modification_time,
+            creation_time: creation_time ? creation_time.toString() : creation_time,
+            modification_time: modification_time ? modification_time.toString() : modification_time,
             timescale: timescale,
-            duration: duration,
+            duration: duration ? duration.toString() : duration,
             rate: rate,
             volume: volume,
             matrix: matrix,
@@ -264,7 +255,7 @@ let methods = {
     meta: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -277,7 +268,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -285,7 +276,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let children_data = data.subarray(body_offset)
@@ -294,7 +285,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags
@@ -306,7 +297,7 @@ let methods = {
     trak: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -316,7 +307,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -324,7 +315,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -334,7 +325,7 @@ let methods = {
     tkhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -347,7 +338,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -355,7 +346,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let creation_time = null
@@ -419,14 +410,14 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            creation_time: creation_time,
-            modification_time: modification_time,
+            creation_time: creation_time ? creation_time.toString() : creation_time,
+            modification_time: modification_time ? modification_time.toString() : modification_time,
             track_id: track_id,
-            duration: duration,
+            duration: duration ? duration.toString() : duration,
             layer: layer,
             alternate_group: alternate_group,
             volume: volume,
@@ -440,7 +431,7 @@ let methods = {
     tref: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -450,11 +441,11 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let track_ids = []
 
-        while (body_offset < data.byteOffset + data.length) {
+        while (body_offset < data.length) {
             track_ids.push(view.getUint32(body_offset))
             body_offset += 4
         }
@@ -463,7 +454,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             track_ids: track_ids
         }
@@ -473,7 +464,7 @@ let methods = {
     trgr: (data, parent = null) => { //DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -483,7 +474,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -491,7 +482,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -501,7 +492,7 @@ let methods = {
     msrc: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -514,7 +505,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -522,7 +513,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let track_group_id = null
@@ -532,7 +523,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -544,7 +535,7 @@ let methods = {
     edts: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -554,7 +545,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -562,7 +553,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -572,7 +563,7 @@ let methods = {
     elst: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -585,7 +576,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -593,7 +584,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -610,8 +601,8 @@ let methods = {
             }
 
             if (version == 1) {
-                segment_duration = view.getBigUint64(body_offset)
-                media_time = view.getBigUint64(body_offset + 8)
+                segment_duration = view.getBigUint64(body_offset).toString()
+                media_time = view.getBigUint64(body_offset + 8).toString()
                 body_offset += 16
             } else {
                 segment_duration = view.getUint32(body_offset)
@@ -630,7 +621,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -643,7 +634,7 @@ let methods = {
     mdia: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -653,7 +644,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -661,7 +652,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -671,7 +662,7 @@ let methods = {
     mdhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -684,7 +675,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -692,7 +683,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let creation_time = null
@@ -724,14 +715,14 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            creation_time: creation_time,
-            modification_time: modification_time,
-            timescale: timescale,
-            duration: duration,
+            creation_time: creation_time ? creation_time.toString() : creation_time,
+            modification_time: modification_time ? modification_time.toString() : modification_time,
+            timescale: timescale ? timescale.toString() : timescale,
+            duration: duration ? duration.toString() : duration,
             language: language,
             pre_defined: pre_defined
         }
@@ -741,7 +732,7 @@ let methods = {
     hdlr: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -754,7 +745,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -762,18 +753,18 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let pre_defined = view.getUint32(body_offset)
         let handler_type = view.getUint32(body_offset + 4)
-        let name = data.subarray(body_offset + 8, data.byteLength - 1).toString()
+        let name = data.subarray(body_offset + 8, data.byteLength - 1).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -787,7 +778,7 @@ let methods = {
     elng: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -800,7 +791,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -808,7 +799,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let extended_language = null
@@ -818,13 +809,13 @@ let methods = {
             body_offset++
         }
 
-        extended_language = data.subarray(extended_language_start, body_offset).toString()
+        extended_language = data.subarray(extended_language_start, body_offset).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -836,7 +827,7 @@ let methods = {
     minf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -846,7 +837,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -854,7 +845,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -864,7 +855,7 @@ let methods = {
     vmhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -877,7 +868,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -885,7 +876,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let graphics_mode = null
@@ -899,7 +890,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -912,7 +903,7 @@ let methods = {
     smhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -925,7 +916,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -933,7 +924,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let balance = null
@@ -943,7 +934,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -955,7 +946,7 @@ let methods = {
     hmhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -968,7 +959,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -976,7 +967,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let max_pdu_size = null
@@ -993,7 +984,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1008,7 +999,7 @@ let methods = {
     sthd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1021,7 +1012,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1029,14 +1020,14 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags
@@ -1047,7 +1038,7 @@ let methods = {
     nmhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1060,7 +1051,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1068,14 +1059,14 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags
@@ -1086,7 +1077,7 @@ let methods = {
     dinf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1096,7 +1087,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -1104,7 +1095,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -1114,7 +1105,7 @@ let methods = {
     dref: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1127,7 +1118,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1135,7 +1126,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -1149,7 +1140,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1162,7 +1153,7 @@ let methods = {
     url: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1175,7 +1166,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1183,23 +1174,25 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let location = null
         let location_offset = body_offset
 
-        while (view.getUint8(body_offset) != 0) {
-            body_offset++
-        }
+        if(flags != 1){
+            while (view.getUint8(body_offset) != 0) {
+                body_offset++
+            }
 
-        location = data.subarray(location_offset, body_offset).toString()
+            location = data.subarray(location_offset, body_offset).toString().trim()
+        }
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1211,7 +1204,7 @@ let methods = {
     urn: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1224,7 +1217,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1232,7 +1225,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let location = null
@@ -1244,7 +1237,7 @@ let methods = {
             body_offset++
         }
 
-        name = data.subarray(name_offset, body_offset).toString()
+        name = data.subarray(name_offset, body_offset).toString().trim()
         body_offset++
         location_offset = body_offset
 
@@ -1252,13 +1245,13 @@ let methods = {
             body_offset++
         }
 
-        location = data.subarray(location_offset, body_offset).toString()
+        location = data.subarray(location_offset, body_offset).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1271,7 +1264,7 @@ let methods = {
     stbl: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1281,7 +1274,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -1289,7 +1282,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -1299,7 +1292,7 @@ let methods = {
     stsd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1312,7 +1305,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1320,7 +1313,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -1339,13 +1332,13 @@ let methods = {
             }
 
             new_entry.size = view.getUint32(body_offset)
-            new_entry.type = data.subarray(body_offset + 4, body_offset + 8).toString()
+            new_entry.type = data.subarray(body_offset + 4, body_offset + 8).toString().trim()
             body_offset += 8
 
             new_entry.size = new_entry.size == 0 ? data.byteLength : new_entry.size
-            new_entry.largesize = new_entry.size == 1 ? view.getBigUint64(body_offset) : null
+            new_entry.largesize = new_entry.size == 1 ? view.getBigUint64(body_offset).toString() : null
             new_entry.largesize ? body_offset += 8 : null
-            new_entry.extended_type = type == 'uuid' ? data.subarray(body_offset, body_offset + 16).toString() : null
+            new_entry.extended_type = type == 'uuid' ? data.subarray(body_offset, body_offset + 16).toString().trim() : null
             body_offset = type == 'uuid' ? body_offset + 16 : body_offset
             new_entry.data_reference_index = view.getUint16(body_offset + 6)
             body_offset += 8
@@ -1357,7 +1350,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1370,7 +1363,7 @@ let methods = {
     stts: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1383,7 +1376,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1391,7 +1384,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -1417,7 +1410,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1430,7 +1423,7 @@ let methods = {
     ctts: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1443,7 +1436,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1451,7 +1444,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = view.getUint32(body_offset)
@@ -1479,7 +1472,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1492,7 +1485,7 @@ let methods = {
     cslg: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1505,7 +1498,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1513,7 +1506,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let composition_to_dts_shift = null
@@ -1542,15 +1535,15 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            composition_to_dts_shift: composition_to_dts_shift,
-            least_decode_to_display_delta: least_decode_to_display_delta,
-            greatest_decode_to_display_delta: greatest_decode_to_display_delta,
-            composition_start_time: composition_start_time,
-            composition_end_time: composition_end_time
+            composition_to_dts_shift: composition_to_dts_shift ? composition_to_dts_shift.toString() : composition_to_dts_shift,
+            least_decode_to_display_delta: least_decode_to_display_delta ? least_decode_to_display_delta.toString() : least_decode_to_display_delta,
+            greatest_decode_to_display_delta: greatest_decode_to_display_delta ? greatest_decode_to_display_delta.toString() : greatest_decode_to_display_delta,
+            composition_start_time: composition_start_time ? composition_start_time.toString() : composition_start_time,
+            composition_end_time: composition_end_time ? composition_end_time.toString() : composition_end_time
         }
 
         return box
@@ -1558,7 +1551,7 @@ let methods = {
     stsc: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1571,7 +1564,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1579,7 +1572,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = view.getUint32(body_offset)
@@ -1605,7 +1598,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1618,7 +1611,7 @@ let methods = {
     stsz: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1631,7 +1624,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1639,7 +1632,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let sample_size = view.getUint32(body_offset)
@@ -1658,7 +1651,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1672,7 +1665,7 @@ let methods = {
     stz2: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1685,7 +1678,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1693,7 +1686,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 7
 
         let field_size = view.getUint8(body_offset)
@@ -1726,7 +1719,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1740,7 +1733,7 @@ let methods = {
     stco: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1753,7 +1746,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1761,7 +1754,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entries = []
@@ -1769,7 +1762,7 @@ let methods = {
         body_offset += 4
 
         for (let i = 0; i < entry_count; i++) {
-            entries.push(view.getBigUint64(body_offset))
+            entries.push(view.getBigUint64(body_offset).toString())
             body_offset += 8
         }
 
@@ -1777,7 +1770,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1790,7 +1783,7 @@ let methods = {
     co64: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1803,7 +1796,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1811,7 +1804,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entries = []
@@ -1819,7 +1812,7 @@ let methods = {
         body_offset += 4
 
         for (let i = 0; i < entry_count; i++) {
-            entries.push(view.getBigUint64(body_offset))
+            entries.push(view.getBigUint64(body_offset).toString())
             body_offset += 8
         }
 
@@ -1827,7 +1820,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1840,7 +1833,7 @@ let methods = {
     stss: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1853,7 +1846,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1861,7 +1854,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entries = []
@@ -1877,7 +1870,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1890,7 +1883,7 @@ let methods = {
     stsh: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1903,7 +1896,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1911,7 +1904,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entries = []
@@ -1935,7 +1928,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -1948,7 +1941,7 @@ let methods = {
     padb: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -1961,7 +1954,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -1969,7 +1962,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let samples = []
@@ -1993,7 +1986,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2006,7 +1999,7 @@ let methods = {
     stdp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2019,7 +2012,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2027,12 +2020,12 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let priorities = []
 
-        while (body_offset < data.byteOffset + data.length) {
+        while (body_offset < data.length) {
             try {
                 priorities.push(view.getUint16(body_offset))
                 body_offset += 2
@@ -2043,7 +2036,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2055,7 +2048,7 @@ let methods = {
     sdtp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2068,7 +2061,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2076,12 +2069,12 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let samples = []
 
-        while (body_offset < data.byteOffset + data.length) {
+        while (body_offset < data.length) {
             let new_sample = {
                 is_leading: null,
                 sample_depends_on: null,
@@ -2104,7 +2097,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2116,7 +2109,7 @@ let methods = {
     sbgp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2129,7 +2122,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2137,7 +2130,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let grouping_type = null
@@ -2172,7 +2165,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2187,7 +2180,7 @@ let methods = {
     sgpd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2200,7 +2193,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2208,7 +2201,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let grouping_type = null
@@ -2237,7 +2230,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2273,7 +2266,7 @@ let methods = {
     subs: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2286,7 +2279,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2294,7 +2287,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entries = []
@@ -2343,7 +2336,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2356,7 +2349,7 @@ let methods = {
     saiz: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2369,7 +2362,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2377,7 +2370,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let aux_info_type = null
@@ -2404,7 +2397,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2420,7 +2413,7 @@ let methods = {
     saio: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2433,7 +2426,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2441,7 +2434,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let aux_info_type = null
@@ -2465,7 +2458,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2480,7 +2473,7 @@ let methods = {
     udta: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2490,7 +2483,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -2498,7 +2491,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -2508,7 +2501,7 @@ let methods = {
     kind: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2521,7 +2514,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2529,7 +2522,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let scheme_uri = null
@@ -2541,7 +2534,7 @@ let methods = {
             body_offset++
         }
 
-        scheme_uri = data.subarray(scheme_uri_offset, body_offset).toString()
+        scheme_uri = data.subarray(scheme_uri_offset, body_offset).toString().trim()
         body_offset++
         value_offset = body_offset
 
@@ -2549,13 +2542,13 @@ let methods = {
             body_offset++
         }
 
-        value = data.subarray(value_offset, body_offset).toString()
+        value = data.subarray(value_offset, body_offset).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2568,7 +2561,7 @@ let methods = {
     mvex: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2578,7 +2571,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -2586,7 +2579,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -2596,7 +2589,7 @@ let methods = {
     mehd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2609,7 +2602,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2617,7 +2610,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let fragment_duration = null
@@ -2634,11 +2627,11 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            fragment_duration: fragment_duration,
+            fragment_duration: fragment_duration ? fragment_duration.toString() : fragment_duration,
         }
 
         return box
@@ -2646,7 +2639,7 @@ let methods = {
     trex: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2659,7 +2652,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2667,7 +2660,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let track_id = view.getUint32(body_offset)
@@ -2691,7 +2684,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2707,7 +2700,7 @@ let methods = {
     trep: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2720,7 +2713,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2728,7 +2721,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let track_id = view.getUint32(body_offset)
@@ -2740,7 +2733,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2753,7 +2746,7 @@ let methods = {
     assp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2766,7 +2759,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2774,7 +2767,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let min_initial_alt_startup_offset = null
@@ -2806,7 +2799,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2820,7 +2813,7 @@ let methods = {
     leva: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2833,7 +2826,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2841,7 +2834,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let levels = []
@@ -2881,7 +2874,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2894,7 +2887,7 @@ let methods = {
     moof: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2904,7 +2897,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -2912,7 +2905,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -2922,7 +2915,7 @@ let methods = {
     mfhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2935,7 +2928,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -2943,7 +2936,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let sequence_number = view.getUint32(body_offset)
@@ -2953,7 +2946,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -2965,7 +2958,7 @@ let methods = {
     traf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -2975,7 +2968,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -2983,7 +2976,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -2993,7 +2986,7 @@ let methods = {
     tfhd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3006,7 +2999,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3014,7 +3007,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let track_id = null
@@ -3051,12 +3044,12 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
             track_id: track_id,
-            base_data_offset: base_data_offset,
+            base_data_offset: base_data_offset ? base_data_offset.toString() : base_data_offset,
             sample_description_index: sample_description_index,
             default_sample_duration: default_sample_duration,
             default_sample_size: default_sample_size,
@@ -3068,7 +3061,7 @@ let methods = {
     trun: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3081,7 +3074,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3089,7 +3082,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let sample_count = null
@@ -3149,7 +3142,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3164,7 +3157,7 @@ let methods = {
     tfdt: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3177,7 +3170,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3185,7 +3178,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let base_media_decode_time = null
@@ -3202,11 +3195,11 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
-            base_media_decode_time: base_media_decode_time
+            base_media_decode_time: base_media_decode_time ? base_media_decode_time.toString() : base_media_decode_time
         }
 
         return box
@@ -3214,7 +3207,7 @@ let methods = {
     mfra: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3224,7 +3217,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -3232,7 +3225,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -3242,7 +3235,7 @@ let methods = {
     tfra: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3255,7 +3248,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3263,7 +3256,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let track_id = null
@@ -3291,8 +3284,8 @@ let methods = {
             }
 
             if (version == 1) {
-                new_entry.time = view.getBigUint64(body_offset)
-                new_entry.moof_offset = view.getBigUint64(body_offset + 8)
+                new_entry.time = view.getBigUint64(body_offset).toString()
+                new_entry.moof_offset = view.getBigUint64(body_offset + 8).toString()
                 body_offset += 16
             } else {
                 new_entry.time = view.getUint32(body_offset)
@@ -3364,7 +3357,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3387,7 +3380,7 @@ let methods = {
     mfro: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3400,7 +3393,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3408,7 +3401,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let mfra_size = view.getUint32(body_offset)
@@ -3418,7 +3411,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3430,7 +3423,7 @@ let methods = {
     mdat: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3440,19 +3433,23 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let data_array = []
 
-        for (let i = body_offset; i < data.byteOffset + data.length; i++) {
-            data_array.push(view.getUint8(i))
+        try{
+            for (let i = body_offset; i < data.length; i++) {
+                data_array.push(view.getUint8(i))
+            }
+        }catch(err){
+            debugger
         }
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             data: data_array
         }
@@ -3462,7 +3459,7 @@ let methods = {
     free: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3472,11 +3469,11 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let data_array = []
 
-        for (let i = body_offset; i < data.byteOffset + data.length; i++) {
+        for (let i = body_offset; i < data.length; i++) {
             data_array.push(view.getUint8(i))
         }
 
@@ -3484,7 +3481,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             data: data_array
         }
@@ -3494,7 +3491,7 @@ let methods = {
     skip: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3504,11 +3501,11 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let data_array = []
 
-        for (let i = body_offset; i < data.byteOffset + data.length; i++) {
+        for (let i = body_offset; i < data.length; i++) {
             data_array.push(view.getUint8(i))
         }
 
@@ -3516,7 +3513,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             data: data_array
         }
@@ -3526,7 +3523,7 @@ let methods = {
     cprt: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3539,7 +3536,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3547,7 +3544,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let language = null
@@ -3564,16 +3561,16 @@ let methods = {
         }
 
         if (notice_first_byte == 0xfeff) {
-            notice = data.subarray(notice_offset + 1, body_offset).toString('utf-16')
+            notice = data.subarray(notice_offset + 1, body_offset).toString('utf-16').trim()
         } else {
-            notice = data.subarray(notice_offset, body_offset).toString()
+            notice = data.subarray(notice_offset, body_offset).toString().trim()
         }
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3586,7 +3583,7 @@ let methods = {
     tsel: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3599,7 +3596,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3607,7 +3604,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let switch_group = null
@@ -3616,7 +3613,7 @@ let methods = {
         switch_group = view.getUint32(body_offset)
         body_offset += 4
 
-        while (body_offset < data.byteOffset + data.length) {
+        while (body_offset < data.length) {
             attribute_list.push(view.getUint32(i))
             body_offset += 4
         }
@@ -3625,7 +3622,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3638,7 +3635,7 @@ let methods = {
     strk: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3648,7 +3645,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -3656,7 +3653,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -3666,7 +3663,7 @@ let methods = {
     stri: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3679,7 +3676,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3687,7 +3684,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let switch_group = null
@@ -3700,7 +3697,7 @@ let methods = {
         sub_track_id = view.getUint32(body_offset + 4)
         body_offset += 8
 
-        while (body_offset < data.byteOffset + data.length) {
+        while (body_offset < data.length) {
             attribute_list.push(view.getUint32(body_offset))
             body_offset += 4
         }
@@ -3709,7 +3706,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3724,7 +3721,7 @@ let methods = {
     strd: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3734,7 +3731,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -3742,7 +3739,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -3752,7 +3749,7 @@ let methods = {
     stsg: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3765,7 +3762,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3773,7 +3770,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let grouping_type = null
@@ -3793,7 +3790,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3807,7 +3804,7 @@ let methods = {
     iloc: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -3820,7 +3817,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -3828,7 +3825,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let offset_size = null
@@ -3895,7 +3892,7 @@ let methods = {
                     new_item.base_offset = view.getUint32(new_item_offset)
                     break;
                 case 8:
-                    new_item.base_offset = view.getBigUint64(new_item_offset)
+                    new_item.base_offset = view.getBigUint64(new_item_offset).toString()
                     break;
                 default:
                     throw new Error(`Invalid size of ${base_offset_size} bytes for base_offset_size field`)
@@ -3922,7 +3919,7 @@ let methods = {
                             new_extent.extent_index = view.getUint32(new_extent_offset)
                             break;
                         case 8:
-                            new_extent.extent_index = view.getBigUint64(new_extent_offset)
+                            new_extent.extent_index = view.getBigUint64(new_extent_offset).toString()
                             break;
                         default:
                             throw new Error(`Invalid value of ${index_size} bytes for index_size field in iloc`)
@@ -3941,7 +3938,7 @@ let methods = {
                         new_extent.extent_offset = view.getUint32(new_extent_offset)
                         break;
                     case 8:
-                        new_extent.extent_offset = view.getBigUint64(new_extent_offset)
+                        new_extent.extent_offset = view.getBigUint64(new_extent_offset).toString()
                         break;
                 }
 
@@ -3955,7 +3952,7 @@ let methods = {
                         new_extent.extent_offset = view.getUint32(new_extent_offset)
                         break;
                     case 8:
-                        new_extent.extent_offset = view.getBigUint64(new_extent_offset)
+                        new_extent.extent_offset = view.getBigUint64(new_extent_offset).toString()
                         break;
                 }
 
@@ -3973,7 +3970,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -3990,7 +3987,7 @@ let methods = {
     ipro: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4003,7 +4000,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4011,7 +4008,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let protection_count = null
@@ -4024,7 +4021,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4038,7 +4035,7 @@ let methods = {
     sinf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4048,7 +4045,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -4056,7 +4053,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -4066,7 +4063,7 @@ let methods = {
     rinf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4076,7 +4073,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -4084,7 +4081,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -4094,7 +4091,7 @@ let methods = {
     srpp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4107,7 +4104,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4115,7 +4112,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let encryption_algorithm_rtp = null
@@ -4134,7 +4131,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4150,7 +4147,7 @@ let methods = {
     frma: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4160,15 +4157,15 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
-        let data_format = data.subarray(body_offset, body_offset + 4).toString()
+        let data_format = data.subarray(body_offset, body_offset + 4).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             data_format: data_format
         }
@@ -4178,7 +4175,7 @@ let methods = {
     schm: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4191,7 +4188,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4199,14 +4196,14 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let scheme_type = null
         let scheme_version = null
         let scheme_uri = null
 
-        scheme_type = data.subarray(body_offset, body_offset + 4).toString()
+        scheme_type = data.subarray(body_offset, body_offset + 4).toString().trim()
         scheme_version = view.getUint32(body_offset + 4)
         body_offset += 8
 
@@ -4216,7 +4213,7 @@ let methods = {
                 body_offset++
             }
 
-            scheme_uri = data.subarray(scheme_uri_offset, body_offset).toString()
+            scheme_uri = data.subarray(scheme_uri_offset, body_offset).toString().trim()
             body_offset++
         }
 
@@ -4224,7 +4221,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4238,7 +4235,7 @@ let methods = {
     schi: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4248,7 +4245,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -4256,7 +4253,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
 
         }
@@ -4267,7 +4264,7 @@ let methods = {
     stvi: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4280,7 +4277,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4288,7 +4285,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let single_view_allowed = null
@@ -4318,7 +4315,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4334,7 +4331,7 @@ let methods = {
     iinf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4347,7 +4344,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4355,7 +4352,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -4373,7 +4370,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4388,7 +4385,7 @@ let methods = {
     infe: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4401,7 +4398,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4409,7 +4406,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let item_id = null
@@ -4435,7 +4432,7 @@ let methods = {
                 item_name_offset++
             }
 
-            item_name = data.subarray(body_offset, item_name_offset).toString()
+            item_name = data.subarray(body_offset, item_name_offset).toString().trim()
             body_offset = item_name_offset + 1
 
             let content_type_offset = body_offset
@@ -4444,7 +4441,7 @@ let methods = {
                 content_type_offset++
             }
 
-            content_type = data.subarray(body_offset, content_type_offset).toString()
+            content_type = data.subarray(body_offset, content_type_offset).toString().trim()
             body_offset = content_type_offset + 1
 
             let content_encoding_offset = body_offset
@@ -4453,7 +4450,7 @@ let methods = {
                 content_encoding_offset++
             }
 
-            content_encoding = data.subarray(body_offset, content_encoding_offset).toString()
+            content_encoding = data.subarray(body_offset, content_encoding_offset).toString().trim()
             body_offset = content_encoding_offset + 1
         }
 
@@ -4478,7 +4475,7 @@ let methods = {
             item_protection_index = view.getUint16(body_offset)
             body_offset += 2
 
-            item_type = data.subarray(body_offset, body_offset + 4).toString()
+            item_type = data.subarray(body_offset, body_offset + 4).toString().trim()
             body_offset += 4
 
             let item_name_offset = body_offset
@@ -4487,7 +4484,7 @@ let methods = {
                 item_name_offset++
             }
 
-            item_name = data.subarray(body_offset, item_name_offset).toString()
+            item_name = data.subarray(body_offset, item_name_offset).toString().trim()
             body_offset = item_name_offset + 1
 
             if (item_type == 'mime') {
@@ -4497,7 +4494,7 @@ let methods = {
                     content_type_offset++
                 }
 
-                content_type = data.subarray(body_offset, content_type_offset).toString()
+                content_type = data.subarray(body_offset, content_type_offset).toString().trim()
                 body_offset = content_type_offset + 1
 
                 let content_encoding_offset = body_offset
@@ -4506,10 +4503,10 @@ let methods = {
                     content_encoding_offset++
                 }
 
-                content_encoding = data.subarray(body_offset, content_encoding_offset).toString()
+                content_encoding = data.subarray(body_offset, content_encoding_offset).toString().trim()
                 body_offset = content_encoding_offset + 1
             } else if (item_type == 'uri') {
-                item_uri_type = data.subarray(body_offset).toString()
+                item_uri_type = data.subarray(body_offset).toString().trim()
             }
         }
 
@@ -4517,7 +4514,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4548,7 +4545,7 @@ let methods = {
             body_offset++
         }
 
-        content_location = data.subarray(0, body_offset).toString()
+        content_location = data.subarray(0, body_offset).toString().trim()
         body_offset++
 
         let content_md5_offset = body_offset
@@ -4557,7 +4554,7 @@ let methods = {
             body_offset++
         }
 
-        content_md5 = data.subarray(content_md5_offset, body_offset).toString()
+        content_md5 = data.subarray(content_md5_offset, body_offset).toString().trim()
         body_offset++
 
         content_length = view.getBigUint64(body_offset)
@@ -4576,8 +4573,8 @@ let methods = {
         return {
             content_location: content_location,
             content_md5: content_md5,
-            content_length: content_length,
-            transfer_length: transfer_length,
+            content_length: content_length ? content_length.toString() : content_length,
+            transfer_length: transfer_length ? transfer_length.toString() : transfer_length,
             entry_count: entry_count,
             entries: entries
         }
@@ -4587,7 +4584,7 @@ let methods = {
     xml: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4600,7 +4597,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4608,18 +4605,18 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let xml_first_byte = view.getUint8(body_offset)
         let xml = data.subarray(body_offset)
-        xml = xml_first_byte == 0xfeff ? xml.toString('utf-16') : xml.toString('utf-8')
+        xml = xml_first_byte == 0xfeff ? xml.toString('utf-16').trim() : xml.toString('utf-8').trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4631,7 +4628,7 @@ let methods = {
     bxml: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4644,7 +4641,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4652,7 +4649,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let xml_data = Array.prototype.slice.call(data.subarray(body_offset))
@@ -4661,7 +4658,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4673,7 +4670,7 @@ let methods = {
     pitm: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4686,7 +4683,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4694,7 +4691,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let item_id = null
@@ -4709,7 +4706,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4721,7 +4718,7 @@ let methods = {
     fiin: (data, parent = null) => { // DATA
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4734,7 +4731,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4742,7 +4739,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = view.getUint16(body_offset)
@@ -4754,7 +4751,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4767,7 +4764,7 @@ let methods = {
     paen: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4777,7 +4774,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -4785,7 +4782,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -4795,7 +4792,7 @@ let methods = {
     fire: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4808,7 +4805,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4816,7 +4813,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -4852,7 +4849,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4865,7 +4862,7 @@ let methods = {
     fpar: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4878,7 +4875,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4886,7 +4883,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let item_id = null
@@ -4920,7 +4917,7 @@ let methods = {
             body_offset++
         }
 
-        scheme_specific_info = data.subarray(scheme_specific_info_offset, body_offset).toString('hex')
+        scheme_specific_info = data.subarray(scheme_specific_info_offset, body_offset).toString('hex').trim()
         body_offset++
 
         if (version == 0) {
@@ -4947,7 +4944,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -4968,7 +4965,7 @@ let methods = {
     fecr: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -4981,7 +4978,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -4989,7 +4986,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -5027,7 +5024,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -5040,7 +5037,7 @@ let methods = {
     segr: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5050,7 +5047,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let num_session_groups = null
         let session_groups = null
@@ -5089,7 +5086,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             num_session_groups: num_session_groups,
             session_groups: session_groups
@@ -5100,7 +5097,7 @@ let methods = {
     gitn: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5113,7 +5110,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5121,7 +5118,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let entry_count = null
@@ -5144,7 +5141,7 @@ let methods = {
                 body_offset++
             }
 
-            new_entry.group_name = data.subarray(group_name_offset, body_offset).toString()
+            new_entry.group_name = data.subarray(group_name_offset, body_offset).toString().trim()
             body_offset++
 
             entries.push(new_entry)
@@ -5154,7 +5151,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -5167,7 +5164,7 @@ let methods = {
     idat: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5177,7 +5174,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let data_array = Array.prototype.slice.call(data.subarray(body_offset))
 
@@ -5185,7 +5182,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             data: data_array
         }
@@ -5195,7 +5192,7 @@ let methods = {
     iref: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5208,7 +5205,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5216,7 +5213,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let references = []
@@ -5225,7 +5222,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags
@@ -5287,7 +5284,7 @@ let methods = {
     single_item_type_reference_box: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5297,7 +5294,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let from_item_id = null
         let reference_count = null
@@ -5318,7 +5315,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             from_item_id: from_item_id,
             reference_count: reference_count,
@@ -5330,7 +5327,7 @@ let methods = {
     single_item_type_reference_box_large: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5340,7 +5337,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let from_item_id = null
         let reference_count = null
@@ -5361,7 +5358,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             from_item_id: from_item_id,
             reference_count: reference_count,
@@ -5373,7 +5370,7 @@ let methods = {
     meco: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5383,7 +5380,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -5391,7 +5388,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -5401,7 +5398,7 @@ let methods = {
     mere: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5414,7 +5411,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5422,7 +5419,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let first_metabox_handler_type = null
@@ -5437,7 +5434,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -5451,7 +5448,7 @@ let methods = {
     styp: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5461,23 +5458,23 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
-        let major_brand = data.subarray(body_offset, body_offset + 4).toString()
+        let major_brand = data.subarray(body_offset, body_offset + 4).toString().trim()
         let minor_version = view.getUint32(body_offset + 4)
         let compatible_brands = []
 
         body_offset += 8
 
         for (let i = 0; i < view.byteLength - body_offset; i += 4) {
-            compatible_brands.push(data.subarray(body_offset + i, body_offset + i + 4).toString())
+            compatible_brands.push(data.subarray(body_offset + i, body_offset + i + 4).toString().trim())
         }
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             major_brand: major_brand,
             minor_version: minor_version,
@@ -5489,7 +5486,7 @@ let methods = {
     sidx: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5502,7 +5499,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5510,7 +5507,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let reference_id = null
@@ -5561,14 +5558,14 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
             reference_id: reference_id,
             timescale: timescale,
-            earliest_presentation_time: earliest_presentation_time,
-            first_offset: first_offset,
+            earliest_presentation_time: earliest_presentation_time ? earliest_presentation_time.toString() : earliest_presentation_time,
+            first_offset: first_offset ? first_offset.toString() : first_offset,
             reference_count: reference_count,
             references: references
         }
@@ -5578,7 +5575,7 @@ let methods = {
     ssix: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5591,7 +5588,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5599,7 +5596,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let subsegments = []
@@ -5623,7 +5620,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -5636,7 +5633,7 @@ let methods = {
     prft: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5649,7 +5646,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5657,7 +5654,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let reference_track_id = null
@@ -5680,13 +5677,13 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
             reference_track_id: reference_track_id,
-            ntp_timestamp: ntp_timestamp,
-            media_time: media_time
+            ntp_timestamp: ntp_timestamp ? ntp_timestamp.toString(): ntp_timestamp,
+            media_time: media_time ? media_time.toString() : media_time
         }
 
         return box
@@ -5694,7 +5691,7 @@ let methods = {
     cinf: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5704,7 +5701,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -5712,7 +5709,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             original_format: ''
         }
@@ -5723,7 +5720,7 @@ let methods = {
     feci: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5733,7 +5730,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let fec_encoding_id = null
         let fec_instance_id = null
@@ -5749,7 +5746,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             fec_encoding_id: fec_encoding_id,
             fec_instance_id: fec_instance_id,
@@ -5762,7 +5759,7 @@ let methods = {
     extr: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5772,7 +5769,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let extra_data = []
         let feci_type = null
@@ -5780,13 +5777,13 @@ let methods = {
         let children_data = null
         let children = []
 
-        feci_type = data.subarray(body_offset + 4, body_offset + 8).toString()
+        feci_type = data.subarray(body_offset + 4, body_offset + 8).toString().trim()
 
         let box = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
         }
 
@@ -5795,17 +5792,22 @@ let methods = {
             feci_largesize = view.getBigUint64(body_offset + 8)
             children_data = data.subarray(body_offset)
             box.children = create_box_tree(children_data, box)
-            body_offset += feci_size == 1 ? feci_largesize : feci_size
+
+            if(feci_size == 1){
+                body_offset = BigInt(body_offset) + feci_largesize
+            }else{
+                body_offset += feci_size
+            }
         }
 
-        extra_data = Array.prototype.slice.call(data.subarray(body_offset))
+        extra_data = Array.prototype.slice.call(data.subarray(Number(body_offset)))
         box.extra_data = extra_data
         return box
     },
     chnl: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5818,7 +5820,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5826,7 +5828,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let stream_structure = null
@@ -5874,14 +5876,14 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
             stream_structure: stream_structure,
             defined_layout: defined_layout,
             channels: channels,
-            omitted_channels_map: omitted_channels_map,
+            omitted_channels_map: omitted_channels_map ? omitted_channels_map.toString() : omitted_channels_map,
             object_count: object_count
         }
 
@@ -5890,7 +5892,7 @@ let methods = {
     dmix: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5903,7 +5905,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
@@ -5911,7 +5913,7 @@ let methods = {
             return {}
         }
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let target_layout = null
@@ -5947,7 +5949,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -5963,7 +5965,7 @@ let methods = {
     ludt: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -5973,7 +5975,7 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         let children_data = data.subarray(body_offset)
 
@@ -5981,7 +5983,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type
         }
 
@@ -5991,7 +5993,7 @@ let methods = {
     tlou: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -6003,11 +6005,11 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let downmix_id = null
@@ -6049,7 +6051,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,
@@ -6068,7 +6070,7 @@ let methods = {
     alou: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let size = view.getUint32(0)
-        let type = data.subarray(4, 8).toString()
+        let type = data.subarray(4, 8).toString().trim()
         let largesize = null
         let extended_type = null
         let body_offset = 8
@@ -6080,11 +6082,11 @@ let methods = {
         body_offset = type == 'uuid' ? body_offset + 16 : body_offset
 
         largesize = size == 1 ? view.getBigUint64(8) : null
-        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString() : null
+        extended_type = type == 'uuid' ? data.subarray(body_offset - 16).toString().trim() : null
 
         version = view.getUint8(body_offset)
 
-        flags = view.getUint32(body_offset + 1) >> 8
+        flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
         let downmix_id = null
@@ -6126,7 +6128,7 @@ let methods = {
             offset: data.byteOffset,
             size: size,
             type: type,
-            largesize: largesize,
+            largesize: largesize ? largesize.toString() : largesize,
             extended_type: extended_type,
             version: version,
             flags: flags,

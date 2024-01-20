@@ -16,5 +16,8 @@
     "mp4"
   ],
   "author": "jlucartc",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "isotools": "^1.0.3"
+  }
 }
