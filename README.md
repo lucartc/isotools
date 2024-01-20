@@ -10,8 +10,8 @@ and `DRCInstructionsUniDRC` boxes are not defined.
 
 Sample entries will be implemented soon.
 
-The following boxes still need to be implemented:
-`tims`,`tsro`,`snro`,`fdsa`,`fdpa`,`lct_header_template`,`lct_header_extension`,`rrtp`,`rsrp`,`rssr`,`clap`,`pasp`,`srat`
+The following boxes and classes still need to be implemented:
+`roll`,`visual_roll_recovery_entry`,`audio_roll_recovery_entry`,`prol`,`alst`,`rap`,`tele`,`sample_entry`,`btrt`,`visual_sample_entry`,`audio_sample_entry`,`audio_sample_entry_v1`,`meta_data_sample_entry`,`metx`,`txtC`,`mett`,`uri`,`uriI`,`urim`,`hint_sample_entry`,`plain_text_sample_entry`,`simple_text_sample_entry`,`subtitle_sample_entry`,`stpp`,`sbtt`,`font_sample_entry`,`tims`,`tsro`,`snro`,`fdsa`,`fdpa`,`lct_header_template`,`lct_header_extension`,`rrtp`,`rsrp`,`rssr`,`clap`,`pasp`,`srat`,`icpv`,`rtp_sample`,`rtp_packet`,`rtp_constructor`,`rtp_noopconstructor`,`rtp_immediateconstructor`,`rtp_sample_constructor`,`rtp_sample_description_constructor`,`hnti`,`rtp`,`sdp`,`trpy`,`nump`,`tpyl`,`totl`,`npck`,`tpay`,`maxr`,`dmed`,`dimm`,`drep`,`tmin`,`tmax`,`pmax`,`dmax`,`payt`,`fdp`,`fd_constructor`,`fd_noopconstructor`,`fd_immediateconstructor`,`fd_sample_constructor`,`fd_item_constructor`,`fd_item_constructor_large`,`fd_xml_box_constructor`,`rm2t`,`sm2t`,`mpeg2_ts_sample_entry`,`tPAT`,`tPMT`,`tOD`,`tsti`,`istm`,`mpeg2_ts_constructor`,`mpeg2_ts_immediate_constructor`,`mpeg2_ts_sample_constructor`,`mpeg2_ts_packet_representation`,`mpeg2_ts_sample`,`pm2t`,`tssy`,`rtpx`,`rcsr`,`received_rtcp_packet`,`received_rtcp_sample`,`ccid`,`sroc`,`prtp`,`rash`,`sap`,`colr`,`loudness_base_box`,`stxt`
 
 ## Functionalities
 With this library you can:
