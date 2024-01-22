@@ -3,7 +3,7 @@ This lib implements part of `ISO/IEC 14496-12 2015`, which is the specification 
 
 ## What's missing?
 Boxes related to `AudioSampleEntry` won't be implemented at the moment, since I don't have access to `ISO/IEC
-23003‐4` specification. If you can, please send me the spec at `jlucartc@gmail.com` or send a PR at the github repo(I'll create one soon).
+23003‐4` specification. If you can, please send me the spec at `jlucartc@gmail.com` or send a PR at the github repo.
 
 If I eventually decide to implement it without the spec, I'll leave a warning here, because it will cause errors/malfunction if `DRCCoefficientsBasic`, `DRCCoefficientsUniDRC`, `DRCInstructionsBasic`,
 and `DRCInstructionsUniDRC` boxes are not defined.
