@@ -35,9 +35,8 @@ jobs:
       - run: echo "@lucartc:registry=https://npm.pkg.github.com" >> /home/runner/work/_temp/.npmrc
       - run: echo "always-auth=true" >> /home/runner/work/_temp/.npmrc
       - run: npm config list
-      - run: cat /home/runner/.npm/_logs/*-debug-0.log
-      - run: npm whoami
       - run: npm publish
+      - run: cat /home/runner/.npm/_logs/*-debug-0.log
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
           NPM_PUBLISH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
