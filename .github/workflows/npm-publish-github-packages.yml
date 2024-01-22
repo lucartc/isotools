@@ -30,10 +30,6 @@ jobs:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
-      - run: echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > /home/runner/work/_temp/.npmrc
-      - run: echo "@lucartc:registry=https://npm.pkg.github.com" >> /home/runner/work/_temp/.npmrc
-      - run: echo "always-auth=true" >> /home/runner/work/_temp/.npmrc
-      - run: npm config list
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
