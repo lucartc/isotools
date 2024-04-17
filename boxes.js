@@ -398,7 +398,7 @@ let methods = {
         body_offset += 2
 
         volume = view.getUint16(body_offset)
-        body_offset += 4
+        body_offset += 2
 
         matrix = Array.prototype.slice.call(data.subarray(body_offset, body_offset + 36))
         body_offset += 36
