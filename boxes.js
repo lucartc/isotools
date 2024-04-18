@@ -3557,13 +3557,13 @@ let methods = {
         body_offset += 2
 
         let notice_offset = body_offset
-        let notice_first_byte = view.getUint8(body_offset)
+        let notice_first_bytes = view.getUint16(body_offset)
 
         while (view.getUint8(body_offset) != 0) {
             body_offset++
         }
 
-        if (notice_first_byte == 0xfeff) {
+        if (notice_first_bytes == 0xfeff) {
             notice = data.subarray(notice_offset + 1, body_offset).toString('utf-16').trim()
         } else {
             notice = data.subarray(notice_offset, body_offset).toString().trim()
@@ -4611,9 +4611,9 @@ let methods = {
         flags = view.getUint32(body_offset) & 0x00ffffff
         body_offset += 4
 
-        let xml_first_byte = view.getUint8(body_offset)
+        let xml_first_bytes = view.getUint16(body_offset)
         let xml = data.subarray(body_offset)
-        xml = xml_first_byte == 0xfeff ? xml.toString('utf-16').trim() : xml.toString('utf-8').trim()
+        xml = xml_first_bytes == 0xfeff ? xml.toString('utf-16').trim() : xml.toString('utf-8').trim()
 
         let box = {
             offset: data.byteOffset,
@@ -6147,10 +6147,24 @@ let methods = {
 
         return box
     },
-    roll: (data, parent = null) => {},
-    visual_roll_recovery_entry: (data, parent = null) => {},
-    audio_roll_recovery_entry: (data, parent = null) => {},
-    prol: (data, parent = null) => {},
+    roll: (data, parent = null) => {
+        let view = new DataView(data.buffer, data.byteOffset, data.length)
+        let body_offset = 0
+        let roll_distance = view.getUint16(body_offset)
+
+        return{
+            roll_distance: roll_distance
+        }
+    },
+    prol: (data, parent = null) => {
+        let view = new DataView(data.buffer, data.byteOffset, data.length)
+        let body_offset = 0
+        let roll_distance = view.getUint16(body_offset)
+
+        return{
+            roll_distance: roll_distance
+        }
+    },
     alst: (data, parent = null) => {},
     rap: (data, parent = null) => {},
     tele: (data, parent = null) => {},
