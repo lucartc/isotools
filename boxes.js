@@ -1,6 +1,9 @@
 function create_box_tree(file, parent = null) { return get_next_box(file, parent) }
 
 function get_next_box(file, parent, tree = []) {
+    if (!file.byteLength) {
+        return tree;
+    }
     let view = new DataView(file.buffer, file.byteOffset)
     let size = view.getUint32(0)
     let type = file.subarray(4, 8).toString().trim()
@@ -395,7 +398,7 @@ let methods = {
         body_offset += 2
 
         volume = view.getUint16(body_offset)
-        body_offset += 4
+        body_offset += 2
 
         matrix = Array.prototype.slice.call(data.subarray(body_offset, body_offset + 36))
         body_offset += 36
