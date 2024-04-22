@@ -136,6 +136,7 @@ let methods = {
             compatible_brands: compatible_brands
         }
 
+        delete box.body_offset
         return box
     },
     pdin: (data, parent = null) => { // DONE
@@ -164,6 +165,7 @@ let methods = {
             pairs: pairs
         }
 
+        delete box.body_offset
         return box
     },
     moov: (data, parent = null) => { // DONE
@@ -173,6 +175,7 @@ let methods = {
         let children_data = data.subarray(body_offset)
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     mvhd: (data, parent = null) => { // DONE
@@ -233,6 +236,7 @@ let methods = {
             next_track_id: next_track_id
         }
 
+        delete box.body_offset
         return box
     },
     meta: (data, parent = null) => { // DONE
@@ -247,6 +251,7 @@ let methods = {
         let children_data = data.subarray(body_offset)
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     trak: (data, parent = null) => { // DONE
@@ -255,6 +260,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     tkhd: (data, parent = null) => { // DONE
@@ -338,6 +344,7 @@ let methods = {
             height: height
         }
 
+        delete box.body_offset
         return box
     },
     tref: (data, parent = null) => { // DONE
@@ -357,6 +364,7 @@ let methods = {
             track_ids: track_ids
         }
 
+        delete box.body_offset
         return box
     },
     trgr: (data, parent = null) => { //DONE
@@ -365,6 +373,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     msrc: (data, parent = null) => { // DONE
@@ -385,6 +394,7 @@ let methods = {
             track_group_id: track_group_id
         }
 
+        delete box.body_offset
         return box
     },
     edts: (data, parent = null) => { // DONE
@@ -393,6 +403,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     elst: (data, parent = null) => { // DONE
@@ -441,6 +452,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     mdia: (data, parent = null) => { // DONE
@@ -449,6 +461,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     mdhd: (data, parent = null) => { // DONE
@@ -496,6 +509,7 @@ let methods = {
             pre_defined: pre_defined
         }
 
+        delete box.body_offset
         return box
     },
     hdlr: (data, parent = null) => { // DONE
@@ -519,6 +533,7 @@ let methods = {
             name: name
         }
 
+        delete box.body_offset
         return box
     },
     elng: (data, parent = null) => { // DONE
@@ -545,6 +560,7 @@ let methods = {
             extended_language: extended_language
         }
 
+        delete box.body_offset
         return box
     },
     minf: (data, parent = null) => { // DONE
@@ -553,6 +569,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     vmhd: (data, parent = null) => { // DONE
@@ -578,6 +595,7 @@ let methods = {
             opcolor: opcolor
         }
 
+        delete box.body_offset
         return box
     },
     smhd: (data, parent = null) => { // DONE
@@ -598,6 +616,7 @@ let methods = {
             balance: balance
         }
 
+        delete box.body_offset
         return box
     },
     hmhd: (data, parent = null) => { // DONE
@@ -628,6 +647,7 @@ let methods = {
             avg_bit_rate: avg_bit_rate
         }
 
+        delete box.body_offset
         return box
     },
     sthd: (data, parent = null) => { // DONE
@@ -639,6 +659,7 @@ let methods = {
             return {}
         }
 
+        delete box.body_offset
         return box
     },
     nmhd: (data, parent = null) => { // DONE
@@ -650,6 +671,7 @@ let methods = {
             return {}
         }
 
+        delete box.body_offset
         return box
     },
     dinf: (data, parent = null) => { // DONE
@@ -659,6 +681,7 @@ let methods = {
         let children_data = data.subarray(body_offset)
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     dref: (data, parent = null) => { // DONE
@@ -684,6 +707,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box).slice(0, entry_count)
+        delete box.body_offset
         return box
     },
     url: (data, parent = null) => { // DONE
@@ -712,6 +736,7 @@ let methods = {
             location: location
         }
 
+        delete box.body_offset
         return box
     },
     urn: (data, parent = null) => { // DONE
@@ -749,6 +774,7 @@ let methods = {
             location: location
         }
 
+        delete box.body_offset
         return box
     },
     stbl: (data, parent = null) => { // DONE
@@ -757,6 +783,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     stsd: (data, parent = null) => { // DONE
@@ -805,6 +832,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     stts: (data, parent = null) => { // DONE
@@ -842,6 +870,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     ctts: (data, parent = null) => { // DONE
@@ -881,6 +910,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     cslg: (data, parent = null) => { // DONE
@@ -924,6 +954,7 @@ let methods = {
             composition_end_time: composition_end_time ? composition_end_time.toString() : composition_end_time
         }
 
+        delete box.body_offset
         return box
     },
     stsc: (data, parent = null) => { // DONE
@@ -961,6 +992,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     stsz: (data, parent = null) => { // DONE
@@ -992,6 +1024,7 @@ let methods = {
             samples: samples
         }
 
+        delete box.body_offset
         return box
     },
     stz2: (data, parent = null) => { // DONE
@@ -1040,6 +1073,7 @@ let methods = {
             samples: samples
         }
 
+        delete box.body_offset
         return box
     },
     stco: (data, parent = null) => { // DONE
@@ -1067,6 +1101,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     co64: (data, parent = null) => { // DONE
@@ -1094,6 +1129,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     stss: (data, parent = null) => { // DONE
@@ -1121,6 +1157,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     stsh: (data, parent = null) => { // DONE
@@ -1156,6 +1193,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     padb: (data, parent = null) => { // DONE
@@ -1191,6 +1229,7 @@ let methods = {
             samples: samples
         }
 
+        delete box.body_offset
         return box
     },
     stdp: (data, parent = null) => { // DONE
@@ -1217,6 +1256,7 @@ let methods = {
             priorities: priorities
         }
 
+        delete box.body_offset
         return box
     },
     sdtp: (data, parent = null) => { // DONE
@@ -1255,6 +1295,7 @@ let methods = {
             samples: samples
         }
 
+        delete box.body_offset
         return box
     },
     sbgp: (data, parent = null) => { // DONE
@@ -1303,6 +1344,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     sgpd: (data, parent = null) => { // DONE
@@ -1366,6 +1408,7 @@ let methods = {
         }
 
         box.entries = entries
+        delete box.body_offset
         return box
     },
     subs: (data, parent = null) => { // DONE
@@ -1426,6 +1469,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     saiz: (data, parent = null) => { // DONE
@@ -1467,6 +1511,7 @@ let methods = {
             sample_info_size: sample_info_size
         }
 
+        delete box.body_offset
         return box
     },
     saio: (data, parent = null) => { // DONE
@@ -1504,6 +1549,7 @@ let methods = {
             offsets: offsets
         }
 
+        delete box.body_offset
         return box
     },
     udta: (data, parent = null) => { // DONE
@@ -1512,6 +1558,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     kind: (data, parent = null) => { // DONE
@@ -1549,6 +1596,7 @@ let methods = {
             value: value
         }
 
+        delete box.body_offset
         return box
     },
     mvex: (data, parent = null) => { // DONE
@@ -1557,6 +1605,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     mehd: (data, parent = null) => { // DONE
@@ -1584,6 +1633,7 @@ let methods = {
             fragment_duration: fragment_duration ? fragment_duration.toString() : fragment_duration,
         }
 
+        delete box.body_offset
         return box
     },
     trex: (data, parent = null) => { // DONE
@@ -1622,6 +1672,7 @@ let methods = {
             default_sample_flags: default_sample_flags
         }
 
+        delete box.body_offset
         return box
     },
     trep: (data, parent = null) => { // DONE
@@ -1645,6 +1696,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     assp: (data, parent = null) => { // DONE
@@ -1689,6 +1741,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     leva: (data, parent = null) => { // DONE
@@ -1740,6 +1793,7 @@ let methods = {
             levels: levels
         }
 
+        delete box.body_offset
         return box
     },
     moof: (data, parent = null) => { // DONE
@@ -1748,6 +1802,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     mfhd: (data, parent = null) => { // DONE
@@ -1768,6 +1823,7 @@ let methods = {
             sequence_number: sequence_number
         }
 
+        delete box.body_offset
         return box
     },
     traf: (data, parent = null) => { // DONE
@@ -1776,6 +1832,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     tfhd: (data, parent = null) => { // DONE
@@ -1828,6 +1885,7 @@ let methods = {
             default_sample_flags: default_sample_flags,
         }
 
+        delete box.body_offset
         return box
     },
     trun: (data, parent = null) => { // DONE
@@ -1901,6 +1959,7 @@ let methods = {
             samples: samples
         }
 
+        delete box.body_offset
         return box
     },
     tfdt: (data, parent = null) => { // DONE
@@ -1928,6 +1987,7 @@ let methods = {
             base_media_decode_time: base_media_decode_time ? base_media_decode_time.toString() : base_media_decode_time
         }
 
+        delete box.body_offset
         return box
     },
     mfra: (data, parent = null) => { // DONE
@@ -1936,6 +1996,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     tfra: (data, parent = null) => { // DONE
@@ -2052,6 +2113,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     mfro: (data, parent = null) => { // DONE
@@ -2072,6 +2134,7 @@ let methods = {
             mfra_size: mfra_size
         }
 
+        delete box.body_offset
         return box
     },
     mdat: (data, parent = null) => { // DONE
@@ -2094,6 +2157,7 @@ let methods = {
             data: data_array
         }
 
+        delete box.body_offset
         return box
     },
     free: (data, parent = null) => { // DONE
@@ -2112,6 +2176,7 @@ let methods = {
             data: data_array
         }
 
+        delete box.body_offset
         return box
     },
     skip: (data, parent = null) => { // DONE
@@ -2130,6 +2195,7 @@ let methods = {
             data: data_array
         }
 
+        delete box.body_offset
         return box
     },
     cprt: (data, parent = null) => { // DONE
@@ -2167,6 +2233,7 @@ let methods = {
             notice: notice
         }
 
+        delete box.body_offset
         return box
     },
     tsel: (data, parent = null) => { // DONE
@@ -2196,6 +2263,7 @@ let methods = {
             attribute_list: attribute_list
         }
 
+        delete box.body_offset
         return box
     },
     strk: (data, parent = null) => { // DONE
@@ -2204,6 +2272,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     stri: (data, parent = null) => { // DONE
@@ -2239,6 +2308,7 @@ let methods = {
             attribute_list: attribute_list
         }
 
+        delete box.body_offset
         return box
     },
     strd: (data, parent = null) => { // DONE
@@ -2247,6 +2317,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     stsg: (data, parent = null) => { // DONE
@@ -2279,6 +2350,7 @@ let methods = {
             items: items
         }
 
+        delete box.body_offset
         return box
     },
     iloc: (data, parent = null) => { // DONE
@@ -2439,6 +2511,7 @@ let methods = {
             items: items
         }
 
+        delete box.body_offset
         return box
     },
     ipro: (data, parent = null) => { // DONE
@@ -2464,6 +2537,7 @@ let methods = {
 
         all_protections = create_box_tree(data.slice(body_offset, data.byteLength), box)
         box.children = all_protections.slice(0, protection_count)
+        delete box.body_offset
         return box
     },
     sinf: (data, parent = null) => { // DONE
@@ -2472,6 +2546,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     rinf: (data, parent = null) => { // DONE
@@ -2480,6 +2555,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     srpp: (data, parent = null) => { // DONE
@@ -2513,6 +2589,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     frma: (data, parent = null) => { // DONE
@@ -2525,6 +2602,7 @@ let methods = {
             data_format: data_format
         }
 
+        delete box.body_offset
         return box
     },
     schm: (data, parent = null) => { // DONE
@@ -2562,6 +2640,7 @@ let methods = {
             scheme_uri: scheme_uri
         }
 
+        delete box.body_offset
         return box
     },
     schi: (data, parent = null) => { // DONE
@@ -2570,6 +2649,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     stvi: (data, parent = null) => { // DONE
@@ -2614,6 +2694,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     iinf: (data, parent = null) => { // DONE
@@ -2645,6 +2726,7 @@ let methods = {
         item_infos = create_box_tree(data.subarray(body_offset))
 
         box.children = item_infos
+        delete box.body_offset
         return box
     },
     infe: (data, parent = null) => { // DONE
@@ -2771,6 +2853,7 @@ let methods = {
             item_type_uri: item_uri_type
         }
 
+        delete box.body_offset
         return box
     },
     fdel: (data, parent = null) => { // DONE
@@ -2840,6 +2923,7 @@ let methods = {
             xml: xml
         }
 
+        delete box.body_offset
         return box
     },
     bxml: (data, parent = null) => { // DONE
@@ -2858,6 +2942,7 @@ let methods = {
             data: xml_data
         }
 
+        delete box.body_offset
         return box
     },
     pitm: (data, parent = null) => { // DONE
@@ -2882,6 +2967,7 @@ let methods = {
             item_id: item_id
         }
 
+        delete box.body_offset
         return box
     },
     fiin: (data, parent = null) => { // DATA
@@ -2905,6 +2991,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     paen: (data, parent = null) => { // DONE
@@ -2913,6 +3000,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     fire: (data, parent = null) => { // DONE
@@ -2960,6 +3048,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     fpar: (data, parent = null) => { // DONE
@@ -3040,6 +3129,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     fecr: (data, parent = null) => { // DONE
@@ -3089,6 +3179,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     segr: (data, parent = null) => { // DONE
@@ -3135,6 +3226,7 @@ let methods = {
             session_groups: session_groups
         }
 
+        delete box.body_offset
         return box
     },
     gitn: (data, parent = null) => { // DONE
@@ -3179,6 +3271,7 @@ let methods = {
             entries: entries
         }
 
+        delete box.body_offset
         return box
     },
     idat: (data, parent = null) => { // DONE
@@ -3192,6 +3285,7 @@ let methods = {
             data: data_array
         }
 
+        delete box.body_offset
         return box
     },
     iref: (data, parent = null) => { // DONE
@@ -3206,6 +3300,7 @@ let methods = {
         let references = []
         references = create_box_tree(data.subarray(body_offset), box)
         box.children = references
+        delete box.body_offset
         return box
     },
     hint: (data, parent) => {
@@ -3284,6 +3379,7 @@ let methods = {
             references: references
         }
 
+        delete box.body_offset
         return box
     },
     single_item_type_reference_box_large: (data, parent = null) => { // DONE
@@ -3313,6 +3409,7 @@ let methods = {
             references: references
         }
 
+        delete box.body_offset
         return box
     },
     meco: (data, parent = null) => { // DONE
@@ -3321,6 +3418,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     mere: (data, parent = null) => { // DONE
@@ -3348,6 +3446,7 @@ let methods = {
             metabox_relation: metabox_relation
         }
 
+        delete box.body_offset
         return box
     },
     styp: (data, parent = null) => { // DONE
@@ -3372,6 +3471,7 @@ let methods = {
             compatible_brands: compatible_brands
         }
 
+        delete box.body_offset
         return box
     },
     sidx: (data, parent = null) => { // DONE
@@ -3438,6 +3538,7 @@ let methods = {
             references: references
         }
 
+        delete box.body_offset
         return box
     },
     ssix: (data, parent = null) => { // DONE
@@ -3473,6 +3574,7 @@ let methods = {
             subsegments: subsegments
         }
 
+        delete box.body_offset
         return box
     },
     prft: (data, parent = null) => { // DONE
@@ -3508,6 +3610,7 @@ let methods = {
             media_time: media_time ? media_time.toString() : media_time
         }
 
+        delete box.body_offset
         return box
     },
     cinf: (data, parent = null) => { // DONE
@@ -3521,6 +3624,7 @@ let methods = {
         }
 
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     feci: (data, parent = null) => { // DONE
@@ -3546,6 +3650,7 @@ let methods = {
             encoding_symbol_id: encoding_symbol_id
         }
 
+        delete box.body_offset
         return box
     },
     extr: (data, parent = null) => { // DONE
@@ -3577,6 +3682,7 @@ let methods = {
         extra_data = Array.prototype.slice.call(data.subarray(Number(body_offset)))
         box.feci = feci
         box.extra_data = extra_data
+        delete box.body_offset
         return box
     },
     chnl: (data, parent = null) => { // DONE
@@ -3639,6 +3745,7 @@ let methods = {
             object_count: object_count
         }
 
+        delete box.body_offset
         return box
     },
     dmix: (data, parent = null) => { // DONE
@@ -3689,6 +3796,7 @@ let methods = {
             target_channels: target_channels
         }
 
+        delete box.body_offset
         return box
     },
     ludt: (data, parent = null) => { // DONE
@@ -3697,6 +3805,7 @@ let methods = {
 
         let children_data = data.subarray(body_offset)
         box.children = create_box_tree(children_data, box)
+        delete box.body_offset
         return box
     },
     tlou: (data, parent = null) => { // DONE
@@ -3751,6 +3860,7 @@ let methods = {
             measurements: measurements
         }
 
+        delete box.body_offset
         return box
     },
     alou: (data, parent = null) => { // DONE
@@ -3805,6 +3915,7 @@ let methods = {
             measurements: measurements
         }
 
+        delete box.body_offset
         return box
     },
     roll: (data, parent = null) => {
