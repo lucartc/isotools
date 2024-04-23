@@ -20,5 +20,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/lucartc/isotools"
+  },
+  "publishConfig": {
+    "@lucartc:registry": "https://npm.pkg.github.com"
   }
 }
