@@ -11,3 +11,5 @@ file
     boxes = iso.tree(data)
     iso.fix(data,'./out.mp4')
 })
+
+console.log('New test version executed!')
