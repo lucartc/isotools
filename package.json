@@ -1,6 +1,6 @@
 {
   "name": "isotools",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "This lib implements part of `ISO/IEC 14496-12 2015`, which is the specification for ISO Base Media File Format, a media container used my many file formats, including mp4.",
   "main": "index.js",
   "files": [
