@@ -884,6 +884,7 @@ let methods = {
         }
 
         let entry_count = view.getUint32(body_offset)
+        let entries = []
         body_offset += 4
 
         for (let i = 0; i < entry_count; i++) {
@@ -1091,8 +1092,8 @@ let methods = {
         body_offset += 4
 
         for (let i = 0; i < entry_count; i++) {
-            entries.push(view.getBigUint64(body_offset).toString())
-            body_offset += 8
+            entries.push(view.getUint32(body_offset).toString())
+            body_offset += 4
         }
 
         box = {
@@ -1329,8 +1330,8 @@ let methods = {
                 group_description_index: null
             }
 
-            new_sample.sample_count = view.getUint32(body_offset)
-            new_sample.group_description_index = view.getUint32(body_offset + 4)
+            new_entry.sample_count = view.getUint32(body_offset)
+            new_entry.group_description_index = view.getUint32(body_offset + 4)
             body_offset += 8
 
             entries.push(new_entry)
