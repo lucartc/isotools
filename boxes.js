@@ -482,16 +482,16 @@ let methods = {
         let pre_defined = null
 
         if (box.version == 1) {
-            creation_time = view.getBigInt64(body_offset)
-            modification_time = view.getBigInt64(body_offset + 8)
-            timescale = view.getBigInt64(body_offset + 16)
-            duration = view.getBigInt64(body_offset + 20)
+            creation_time = view.getBigUint64(body_offset)
+            modification_time = view.getBigUint64(body_offset + 8)
+            timescale = view.getUint32(body_offset + 16)
+            duration = view.getBigUint64(body_offset + 20)
             body_offset += 28
         } else if (box.version == 0) {
-            creation_time = view.getBigInt64(body_offset)
-            modification_time = view.getBigInt64(body_offset + 4)
-            timescale = view.getBigInt64(body_offset + 8)
-            duration = view.getBigInt64(body_offset + 12)
+            creation_time = view.getUint32(body_offset)
+            modification_time = view.getUint32(body_offset + 4)
+            timescale = view.getUint32(body_offset + 8)
+            duration = view.getUint32(body_offset + 12)
             body_offset += 16
         }
 
