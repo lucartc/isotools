@@ -70,11 +70,8 @@ function get_next_box(file, parent, tree = []) {
     let valid_types = new Set(Object.keys(methods))
 
     try {
-        while (!valid_types.has(type)) {
-            file = file.subarray(1)
-            view = new DataView(file.buffer, file.byteOffset)
-            size = view.getUint32(0)
-            type = file.subarray(4, 8).toString().trim()
+        if (!valid_types.has(type)) {
+            return get_next_box(file.subarray(1), parent, tree);
         }
     } catch (e) {
         if (e instanceof RangeError) {
@@ -482,16 +479,16 @@ let methods = {
         let pre_defined = null
 
         if (box.version == 1) {
-            creation_time = view.getBigInt64(body_offset)
-            modification_time = view.getBigInt64(body_offset + 8)
-            timescale = view.getBigInt64(body_offset + 16)
-            duration = view.getBigInt64(body_offset + 20)
+            creation_time = view.getBigUint64(body_offset)
+            modification_time = view.getBigUint64(body_offset + 8)
+            timescale = view.getUint32(body_offset + 16)
+            duration = view.getBigUint64(body_offset + 20)
             body_offset += 28
         } else if (box.version == 0) {
-            creation_time = view.getBigInt64(body_offset)
-            modification_time = view.getBigInt64(body_offset + 4)
-            timescale = view.getBigInt64(body_offset + 8)
-            duration = view.getBigInt64(body_offset + 12)
+            creation_time = view.getUint32(body_offset)
+            modification_time = view.getUint32(body_offset + 4)
+            timescale = view.getUint32(body_offset + 8)
+            duration = view.getUint32(body_offset + 12)
             body_offset += 16
         }
 
