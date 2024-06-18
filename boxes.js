@@ -70,11 +70,8 @@ function get_next_box(file, parent, tree = []) {
     let valid_types = new Set(Object.keys(methods))
 
     try {
-        while (!valid_types.has(type)) {
-            file = file.subarray(1)
-            view = new DataView(file.buffer, file.byteOffset)
-            size = view.getUint32(0)
-            type = file.subarray(4, 8).toString().trim()
+        if (!valid_types.has(type)) {
+            return get_next_box(file.subarray(1), parent, tree);
         }
     } catch (e) {
         if (e instanceof RangeError) {
