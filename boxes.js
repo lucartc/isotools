@@ -364,7 +364,7 @@ let methods = {
         delete box.body_offset
         return box
     },
-    trgr: (data, parent = null) => { //DONE
+    trgr: (data, parent = null) => { // DONE
         let box = create_box(data)
         let body_offset = box.body_offset
 
@@ -2968,7 +2968,7 @@ let methods = {
         delete box.body_offset
         return box
     },
-    fiin: (data, parent = null) => { // DATA
+    fiin: (data, parent = null) => { // DONE
         let view = new DataView(data.buffer, data.byteOffset, data.length)
         let box = create_full_box(data)
         let body_offset = box.body_offset
@@ -4040,6 +4040,32 @@ let methods = {
     colr: (data, parent = null) => {},
     loudness_base_box: (data, parent = null) => {},
     stxt: (data, parent = null) => {},
+    udc1: (data, parent = null) => {
+        let view = new DataView(data.buffer, data.byteOffset, data.length)
+        let box = create_full_box(data)
+        let body_offset = box.body_offset
+        let accepted_versions = new Set([0])
+
+        if (!accepted_versions.has(box.version)) {
+            return {}
+        }
+
+        let drc_location = null
+        let drc_characteristic = null
+
+        drc_location = (view.getUint16(body_offset) >> 7) & 0x01f
+        drc_characteristic = view.getUint16(body_offset) & 0x7f
+
+        box = {
+            ...box,
+            drc_location: drc_location,
+            drc_characteristic: drc_characteristic
+        }
+
+        delete box.body_offset
+        return box
+    },
+    udc2: (data, parent = null) => {},
 }
 
 module.exports = {
