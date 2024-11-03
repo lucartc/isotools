@@ -4065,7 +4065,106 @@ let methods = {
         delete box.body_offset
         return box
     },
-    udc2: (data, parent = null) => {},
+    udc2: (data, parent = null) => {
+        let view = new DataView(data.buffer, data.byteOffset, data.length)
+        let box = create_full_box(data)
+        let body_offset = box.body_offset
+        let accepted_versions = new Set([0])
+
+        if (!accepted_versions.has(box.version)) {
+            return {}
+        }
+
+        let drc_location = null
+        let drc_frame_size_present = null
+        let bs_drc_frame_size = null
+        let delay_mode = null
+        let sequence_count = null
+        let sets = []
+
+        drc_location = (view.getUint8(body_offset) >> 1) & 0x1f
+        drc_frame_size_present = view.getUint8(body_offset) & 0x1
+        body_offset += 1
+
+        if(drc_frame_size_present){
+            bs_drc_frame_size = view.getUint16(body_offset) & 0x7fff
+            body_offset += 2
+        }
+        
+        delay_mode = (view.getUint8(body_offset) >> 6) & 0x1
+        sequence_count = view.getUint8(body_offset) & 0x3f
+        body_offset += 1
+
+        for (let i = 0; i < sequence_count_count; i++) {
+            let set = {
+                gain_coding_profile: null,
+                gain_interpolation_type: null,
+                full_frame: null,
+                time_alignment: null,
+                time_delta_min_present: null,
+                bs_time_delta_min: null,
+                band_count: null,
+                drc_band_type: null,
+                bands: [],
+            }
+
+            set.gain_coding_profile = (view.getUint8(body_offset) >> 4) & 0x3
+            set.gain_interpolation_type = (view.getUint8(body_offset) >> 3) & 0x1
+            set.full_frame = (view.getUint8(body_offset) >> 2) & 0x1
+            set.time_alignment = (view.getUint8(body_offset) >> 1) & 0x1
+            set.time_delta_min_present = view.getUint8(body_offset) & 0x1
+            body_offset += 1
+
+            if(set.time_delta_min_present){
+                set.bs_time_delta_min = view.getUint16(body_offset) & 0x3ff
+                body_offset += 2
+            }
+
+            if(set.gain_coding_profile != 3){
+                set.band_count = (view.getUint8(body_offset) >> 1) & 0xf
+                set.drc_band_type = view.getUint8(body_offset) & 0x1
+                body_offset += 1
+
+                for (let j = 0; j < set.band_count; j++){
+                    let band = {
+                        drc_characteristic: null,
+                        crossover_freq_index: null,
+                        start_sub_band_index: null
+                    }
+
+                    band.drc_characteristic = view.getUint8(body_offset) & 0x7f
+                    body_offset += 1
+
+                    if(j){
+                        if(set.drc_band_type){
+                            band.crossover_freq_index = view.getUint8(body_offset) & 0xf
+                            body_offset += 1
+                        }else{
+                            band.start_sub_band_index = view.getUint16(body_offset) & 0x3ff
+                            body_offset += 2
+                        }
+                    }
+
+                    set.bands.push(band)
+                }
+            }
+
+            sets.push(set)
+        }
+
+        box = {
+            ...box,
+            drc_location: drc_location,
+            drc_frame_size_present: drc_frame_size_present,
+            bs_drc_frame_size: bs_drc_frame_size,
+            delay_mode: delay_mode,
+            sequence_count: sequence_count,
+            sets: sets
+        }
+
+        delete box.body_offset
+        return box
+    },
 }
 
 module.exports = {
