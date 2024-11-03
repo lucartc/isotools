@@ -74,6 +74,21 @@ function create_sample_entry(data){
     return box
 }
 
+function create_rtp_constructor(data){}
+function create_fd_constructor(data){}
+function create_mpeg2ts_sample_entry(data){}
+function create_hint_sample_entry(data){}
+function create_mpeg2ts_constructor(data){}
+function create_mpeg2_transport_stream_sample_entry(data){}
+function create_rtp_reception_hint_sample_entry(data){}
+function create_visual_sample_group_entry(data){}
+function create_audio_sample_group_entry(data){}
+function create_sample_group_description_entry(data){}
+function create_loudness_base_box(data){}
+function create_metadata_sample_entry(data){}
+function create_plain_text_sample_entry(data){}
+function create_subtitle_sample_entry(data){}
+
 function create_box_tree(file, parent = null) { return get_next_box(file, parent) }
 
 function get_next_box(file, parent, tree = []) {
