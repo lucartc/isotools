@@ -57,6 +57,25 @@ function create_full_box(data){
     }
 }
 
+function create_sample_entry(data){
+    let view = new DataView(data.buffer, data.byteOffset, data.length)
+    let box = create_box(data)
+    let body_offset = box.body_offset
+
+    let data_reference_index = null
+
+    body_offset += 6
+    data_reference_index = view.getUint16(body_offset)
+
+    box = {
+        ...box,
+        data_reference_index: data_reference_index
+    }
+
+    delete box.body_offset
+    return box
+}
+
 function create_box_tree(file, parent = null) { return get_next_box(file, parent) }
 
 function get_next_box(file, parent, tree = []) {
